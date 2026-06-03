@@ -68,6 +68,10 @@ class MeetingAssistantWorker(QObject):
         r'\b(?:classify|categori[sz]e|illustrate|demonstrate|justify|derive|prove)\b',
         r'\bdiscuss\s+(?:the|about|various|different|how|why|advantages|disadvantages|types|features|role|importance|concept|concepts|pros)\b',
         r'\bwrite\s+(?:a|an|the|short|down|code|program|note|about|pseudo\s*code)\b',
+        # Flexible interrogatives where a noun phrase sits between the wh-word and
+        # the modal, e.g. "what steps would you take", "which approach should we use",
+        # "how many requests can it handle". Common in scenario-based questions.
+        r'\b(?:what|which|whose|how)\s+\w+(?:\s+\w+){0,3}\s+(?:would|should|could|can|do|does|did|will|to)\s+(?:you|we|i|they|one|it|the|a|an)\b',
     ]
 
     # Tuning knobs (sourced from styles.py — no magic numbers)

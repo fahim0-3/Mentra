@@ -673,6 +673,9 @@ class Mentra(QMainWindow):
         if self.meeting_active:
             self._stop_meeting()
         else:
+            # Reveal the window if it is hidden so the meeting panel is visible.
+            if not self.is_visible:
+                self.show_window()
             self._start_meeting()
 
     def _start_meeting(self):
