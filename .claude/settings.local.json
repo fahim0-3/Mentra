@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(pip install:*)",
+      "Bash(.venv/Scripts/python.exe -m pytest mentra/tests/test_vad_gate.py mentra/tests/test_meeting_assistant.py mentra/tests/test_quota_guard.py mentra/tests/test_silero_vad.py mentra/tests/test_endpoint_timing.py mentra/tests/test_segment_immediate_stt.py mentra/tests/test_speculative.py -q)",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(.venv/Scripts/python.exe -m py_compile mentra/utils/styles.py mentra/workers/vad_gate.py mentra/workers/audio_capture_worker.py mentra/workers/groq_provider.py mentra/workers/meeting_assistant_worker.py mentra/workers/whisper_service.py mentra/ui/main_window.py mentra/tests/test_silero_vad.py mentra/tests/test_endpoint_timing.py mentra/tests/test_segment_immediate_stt.py mentra/tests/test_speculative.py)",
+      "Bash(.venv/Scripts/python.exe -m pytest mentra/tests/test_quota_guard.py mentra/tests/test_vad_gate.py mentra/tests/test_meeting_assistant.py mentra/tests/test_silero_vad.py mentra/tests/test_endpoint_timing.py mentra/tests/test_segment_immediate_stt.py mentra/tests/test_speculative.py -q)",
+      "Bash(.venv/Scripts/python.exe -m pytest mentra/tests/test_quota_guard.py mentra/tests/test_vad_gate.py mentra/tests/test_meeting_assistant.py mentra/tests/test_silero_vad.py mentra/tests/test_endpoint_timing.py mentra/tests/test_segment_immediate_stt.py mentra/tests/test_speculative.py mentra/tests/test_stt_filtering.py -q)",
+      "Bash(.venv/Scripts/python.exe -m py_compile mentra/utils/styles.py mentra/workers/vad_gate.py mentra/workers/groq_provider.py mentra/workers/fetch_silero_vad.py mentra/tests/test_stt_filtering.py)",
+      "Bash(mv \"2026-06-02_Cluely-Clone_Project-Documentation_v1.md\" \"2026-06-02_Mentra_Project-Documentation_v1.md\")",
+      "Bash(grep -rIl -i \"cluely\" . --exclude-dir=.venv --exclude-dir=.pytest_cache --exclude-dir=__pycache__)",
+      "Bash(.venv/Scripts/python.exe -c \"from mentra.ui.main_window import Mentra; from mentra.workers.groq_provider import clean_groq_segments; from mentra.core.chat_manager import ChatManager; import inspect; print\\('class:', Mentra.__name__\\); print\\('db default:', inspect.signature\\(ChatManager.__init__\\)\\); print\\('OK'\\)\")",
+      "Bash(.venv/Scripts/python.exe -m compileall -q main.py run.py mentra)",
+      "PowerShell(.\\\\.venv\\\\Scripts\\\\python.exe -m pip install -r requirements.txt; Write-Output \"=== PIP EXIT: $LASTEXITCODE ===\")"
+    ]
+  }
+}

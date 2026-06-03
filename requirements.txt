@@ -1,0 +1,15 @@
+PyQt5
+keyboard
+ollama
+pillow
+pyautogui
+opencv-python
+numpy
+pywin32
+uiautomation
+pyperclip
+faster-whisper
+sounddevice
+scipy
+PyAudioWPatch
+onnxruntime
