@@ -51,6 +51,23 @@ class MeetingAssistantWorker(QObject):
         r'\bwhat\'?s\b',
         r'\bhow\'?s\b',
         r'\bwhy\'?s\b',
+        # Imperative / request-style questions, e.g. "give me the definition of OOP",
+        # "list the types of inheritance", "explain polymorphism".
+        r'\bgive\s+(?:me|us|the|a|an)\b',
+        r'\b(?:define|definition\s+of|meaning\s+of)\b',
+        r'\b(?:list|enumerate)\s+(?:the|some|all|a|few|any|out|down|various|different|main|key|two|three)\b',
+        r'\b(?:outline|summari[sz]e|elaborate)\b',
+        r'\b(?:name|state|mention)\s+(?:the|some|a|an|all|any|few|two|three)\b',
+        r'\b(?:types|kinds|examples?|advantages|disadvantages|benefits|features|characteristics|uses|properties)\s+of\b',
+        r'\bpros\s+and\s+cons\b',
+        r'\bwhat\s+about\b',
+        # Comparison / academic request verbs, e.g. "differentiate between X and Y",
+        # "compare A and B", "what do you mean by encapsulation".
+        r'\b(?:differentiate|distinguish|compare|contrast)\b',
+        r'\bwhat\s+do\s+you\s+mean\s+by\b',
+        r'\b(?:classify|categori[sz]e|illustrate|demonstrate|justify|derive|prove)\b',
+        r'\bdiscuss\s+(?:the|about|various|different|how|why|advantages|disadvantages|types|features|role|importance|concept|concepts|pros)\b',
+        r'\bwrite\s+(?:a|an|the|short|down|code|program|note|about|pseudo\s*code)\b',
     ]
 
     # Tuning knobs (sourced from styles.py — no magic numbers)
@@ -127,7 +144,10 @@ class MeetingAssistantWorker(QObject):
         low = s.lower()
         if re.match(
             r'^(what|why|how|when|where|who|which|whose|can|could|would|should|'
-            r'do|does|did|is|are|will|explain|describe|tell me|define)\b',
+            r'do|does|did|is|are|will|explain|describe|tell me|define|definition|'
+            r'give|list|name|state|mention|provide|summari[sz]e|compare|outline|elaborate|'
+            r'differentiate|distinguish|contrast|classify|illustrate|demonstrate|justify|'
+            r'discuss|derive|prove|write|calculate|compute|solve)\b',
             low,
         ):
             score = max(score, 0.85)

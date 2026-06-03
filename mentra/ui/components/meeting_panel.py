@@ -76,7 +76,7 @@ class MeetingPanel(QFrame):
     toggle_requested = Signal()
 
     COLLAPSED_HEIGHT = 42
-    EXPANDED_HEIGHT = 460
+    EXPANDED_HEIGHT = 560
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -177,7 +177,8 @@ class MeetingPanel(QFrame):
         self._transcript_scroll = QScrollArea()
         self._transcript_scroll.setWidgetResizable(True)
         self._transcript_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._transcript_scroll.setMaximumHeight(80)
+        self._transcript_scroll.setMinimumHeight(70)
+        self._transcript_scroll.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self._transcript_scroll.setStyleSheet(
             f"QScrollArea {{ background: #18181b; border: 1px solid #27272a; "
             f"border-radius: 8px; }} {STYLE_SCROLLBAR}"
@@ -191,7 +192,7 @@ class MeetingPanel(QFrame):
             f"background: transparent; padding: 8px;"
         )
         self._transcript_scroll.setWidget(self._transcript_label)
-        body_layout.addWidget(self._transcript_scroll)
+        body_layout.addWidget(self._transcript_scroll, 2)
 
         # Detected question section
         question_header = QLabel("DETECTED QUESTION")
@@ -221,7 +222,8 @@ class MeetingPanel(QFrame):
         self._answer_scroll = QScrollArea()
         self._answer_scroll.setWidgetResizable(True)
         self._answer_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._answer_scroll.setMaximumHeight(80)
+        self._answer_scroll.setMinimumHeight(110)
+        self._answer_scroll.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self._answer_scroll.setStyleSheet(
             f"QScrollArea {{ background: #0c1a0c; border: 1px solid #14532d; "
             f"border-radius: 8px; }} {STYLE_SCROLLBAR}"
@@ -235,7 +237,7 @@ class MeetingPanel(QFrame):
             f"background: transparent; padding: 8px;"
         )
         self._answer_scroll.setWidget(self._answer_label)
-        body_layout.addWidget(self._answer_scroll)
+        body_layout.addWidget(self._answer_scroll, 3)
 
         # Debug log section
         debug_header = QLabel("DEBUG LOG")
@@ -248,7 +250,7 @@ class MeetingPanel(QFrame):
         self._debug_scroll = QScrollArea()
         self._debug_scroll.setWidgetResizable(True)
         self._debug_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self._debug_scroll.setMaximumHeight(100)
+        self._debug_scroll.setMaximumHeight(70)
         self._debug_scroll.setStyleSheet(
             f"QScrollArea {{ background: #0f0f12; border: 1px solid #27272a; "
             f"border-radius: 8px; }} {STYLE_SCROLLBAR}"
@@ -267,7 +269,7 @@ class MeetingPanel(QFrame):
         self._debug_lines = []
         self._max_debug_lines = 50
 
-        self._main_layout.addWidget(self._body)
+        self._main_layout.addWidget(self._body, 1)
 
     # ── Public API ──
 
@@ -384,15 +386,22 @@ class MeetingPanel(QFrame):
 
     # ── Expand / Collapse ──
 
+    def _expanded_target(self):
+        """Height the panel opens to: fill most of the app window (not the screen)."""
+        win = self.window()
+        if win is not None and win.height() > 0:
+            return max(self.EXPANDED_HEIGHT, win.height() - 190)
+        return self.EXPANDED_HEIGHT
+
     def _toggle_expand(self):
         self._expanded = not self._expanded
         if self._expanded:
             self._body.setVisible(True)
             self._arrow_label.setText("▾")
-            self._animate_height(self.COLLAPSED_HEIGHT, self.EXPANDED_HEIGHT)
+            self._animate_height(self.COLLAPSED_HEIGHT, self._expanded_target())
         else:
             self._arrow_label.setText("▸")
-            self._animate_height(self.EXPANDED_HEIGHT, self.COLLAPSED_HEIGHT)
+            self._animate_height(self.maximumHeight(), self.COLLAPSED_HEIGHT)
 
     def _animate_height(self, from_h, to_h):
         anim = QPropertyAnimation(self, b"maximumHeight")
@@ -404,3 +413,13 @@ class MeetingPanel(QFrame):
             anim.finished.connect(lambda: self._body.setVisible(False))
         self._anim = anim  # prevent GC
         anim.start()
+
+    def expand(self):
+        """Open the panel programmatically (e.g. when meeting mode starts)."""
+        if not self._expanded:
+            self._toggle_expand()
+
+    def collapse(self):
+        """Close the panel programmatically (e.g. when meeting mode stops)."""
+        if self._expanded:
+            self._toggle_expand()

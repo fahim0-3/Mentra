@@ -101,6 +101,9 @@ class Mentra(QMainWindow):
         self._meeting_quota_guard = DailyQuotaGuard(limit=1900)
         self._meeting_provider = None
         self._meeting_connectivity_timer = None
+        # Threads that did not stop in time are parked here (kept referenced) so
+        # they are never destroyed while still running, then self-delete on exit.
+        self._zombie_threads = []
 
         # Hotkey bridge
         self.bridge = HotkeyBridge()
@@ -782,6 +785,8 @@ class Mentra(QMainWindow):
         self.meeting_active = True
         self._set_meeting_state("LISTENING")
         self.meeting_panel.reset_display()
+        # Auto-expand so the transcript, question and answer are visible at once.
+        self.meeting_panel.expand()
 
     def _stop_meeting(self):
         """Cleanly shut down the meeting pipeline."""
@@ -789,15 +794,46 @@ class Mentra(QMainWindow):
         self.meeting_active = False
         self._set_meeting_state("OFF")
         self.meeting_panel.reset_display()
+        # Collapse back to the compact header when meeting mode is off.
+        self.meeting_panel.collapse()
 
     def _stop_meeting_workers(self):
-        """Stop all meeting worker threads."""
+        """Stop all meeting worker threads without ever destroying a live thread.
+
+        Destroying a QThread that is still running aborts the whole process
+        ("QThread: Destroyed while thread is still running"). So we silence the
+        pipeline, ask every worker to stop, then quit/wait each thread; any
+        thread that does not finish in time is parked and left to self-delete
+        when it eventually exits, rather than being torn down underneath Qt.
+        """
         # Stop connectivity timer
         if self._meeting_connectivity_timer:
             self._meeting_connectivity_timer.stop()
             self._meeting_connectivity_timer = None
 
-        # Signal workers to stop
+        workers = [
+            self._meeting_audio_worker,
+            self._meeting_vad_worker,
+            self._meeting_stt_worker,
+            self._meeting_assistant_worker,
+        ]
+        threads = [
+            self._meeting_audio_thread,
+            self._meeting_vad_thread,
+            self._meeting_stt_thread,
+            self._meeting_assistant_thread,
+        ]
+
+        # Silence the pipeline so no queued cross-thread slot fires on a
+        # half-torn-down worker during shutdown.
+        for w in workers:
+            if w is not None:
+                try:
+                    w.blockSignals(True)
+                except RuntimeError:
+                    pass
+
+        # Signal workers to stop their loops
         if self._meeting_stop_event:
             self._meeting_stop_event.set()
         if self._meeting_vad_worker:
@@ -809,20 +845,28 @@ class Mentra(QMainWindow):
 
         # Clean up local provider subprocess
         if isinstance(self._meeting_provider, LocalProvider):
-            self._meeting_provider.stop()
+            try:
+                self._meeting_provider.stop()
+            except Exception:
+                pass
 
-        # Quit threads
-        for thread in [
-            self._meeting_audio_thread,
-            self._meeting_vad_thread,
-            self._meeting_stt_thread,
-            self._meeting_assistant_thread,
-        ]:
-            if thread and thread.isRunning():
-                thread.quit()
-                thread.wait(1000)
+        # Quit + wait for each thread; defer cleanup of any that overrun.
+        for thread, worker in zip(threads, workers):
+            if thread is None:
+                continue
+            thread.quit()
+            if not thread.wait(3000):
+                # Do NOT destroy a running thread. Keep it referenced and let
+                # it (and its worker) delete themselves once they finish.
+                if worker is not None:
+                    thread.finished.connect(worker.deleteLater)
+                thread.finished.connect(thread.deleteLater)
+                self._zombie_threads.append(thread)
+                self.meeting_panel.add_debug_log(
+                    "[Meeting] A worker is still finishing; it will clean up in the background."
+                )
 
-        # Release references
+        # Release references (timed-out threads are safely held in _zombie_threads)
         self._meeting_audio_worker = None
         self._meeting_audio_thread = None
         self._meeting_vad_worker = None

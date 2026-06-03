@@ -227,21 +227,30 @@ class VadGateWorker(QObject):
             pass
 
     def _ensure_vad(self):
-        """Lazily initialise Silero VAD (ONNX) with energy fallback."""
+        """Lazily initialise the speech detector.
+
+        Defaults to the adaptive **energy** VAD, which is accurate on real
+        speech and free of native dependencies. The Silero ONNX path scored
+        real speech as non-speech on this audio pipeline, so it is opt-in via
+        the ``MENTRA_USE_SILERO=1`` environment variable (kept for future
+        debugging). Either way, a failure degrades to the energy detector.
+        """
         if self._vad is not None:
             return True
+        use_silero = os.environ.get("MENTRA_USE_SILERO") == "1"
         try:
-            self._vad = SileroVAD(self.SAMPLE_RATE)
-            if getattr(self._vad, "backend", "energy") == "onnx":
-                self._log("Silero VAD (ONNX) loaded successfully")
-            else:
+            if use_silero:
+                self._vad = SileroVAD(self.SAMPLE_RATE)
                 self._log(
-                    "WARNING: Silero ONNX model unavailable — "
-                    "using adaptive energy VAD fallback"
+                    f"Silero VAD requested — backend in use: "
+                    f"{getattr(self._vad, 'backend', 'energy')}"
                 )
+            else:
+                self._vad = EnergyVAD(self.SAMPLE_RATE)
+                self._log("Using adaptive energy VAD")
             return True
         except Exception as e:
-            self._log(f"Failed to load Silero VAD: {e}; trying energy fallback")
+            self._log(f"Failed to initialise VAD: {e}; trying energy fallback")
             try:
                 self._vad = EnergyVAD(self.SAMPLE_RATE)
                 return True
@@ -271,31 +280,6 @@ class VadGateWorker(QObject):
         near_end_threshold = int(trailing_threshold * VAD_NEAR_END_FRACTION)
         min_speech_samples = int(self.MIN_UTTERANCE_S * self.SAMPLE_RATE)
 
-        # === TEMP VAD DEBUG (remove after diagnosis) ======================
-        # Save the first ~12s of audio the VAD actually receives to a WAV so
-        # the real waveform can be inspected, and track the per-chunk peak
-        # Silero probability + active backend.
-        if not getattr(self, "_dbg_done", False):
-            buf = getattr(self, "_dbg_buf", None)
-            if buf is None:
-                buf = self._dbg_buf = []
-                self._dbg_n = 0
-            buf.append(chunk.copy())
-            self._dbg_n += len(chunk)
-            if self._dbg_n >= self.SAMPLE_RATE * 12:
-                try:
-                    audio_all = np.concatenate(buf)
-                    path = os.path.join(os.getcwd(), "vad_debug_capture.wav")
-                    with open(path, "wb") as f:
-                        f.write(self._encode_wav(audio_all))
-                    self._log(f"DEBUG: wrote {self._dbg_n} samples -> {path}")
-                except Exception as e:
-                    self._log(f"DEBUG: WAV dump failed: {e}")
-                self._dbg_done = True
-                self._dbg_buf = []
-        _dbg_max = 0.0
-        # === END TEMP VAD DEBUG ===========================================
-
         offset = 0
         while offset + window_size <= len(chunk):
             window = chunk[offset: offset + window_size]
@@ -305,9 +289,6 @@ class VadGateWorker(QObject):
                 prob = self._vad.process(window)
             except Exception:
                 prob = 0.0
-
-            if prob > _dbg_max:      # TEMP VAD DEBUG
-                _dbg_max = prob      # TEMP VAD DEBUG
 
             is_speech = prob >= self.SPEECH_THRESHOLD
 
@@ -360,13 +341,6 @@ class VadGateWorker(QObject):
                         self._trailing_silence_samples = 0
                         self._speech_samples = 0
                         self._set_near_end(False)
-
-        # === TEMP VAD DEBUG (remove after diagnosis) ===
-        self._log(
-            f"DEBUG chunk peakprob={_dbg_max:.3f} "
-            f"backend={getattr(self._vad, 'backend', '?')} gate={self._state}"
-        )
-        # === END TEMP VAD DEBUG ===
 
     def _emit_utterance(self, force_flush=False):
         """Concatenate accumulated audio, encode WAV, emit signal, reset."""
