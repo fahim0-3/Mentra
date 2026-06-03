@@ -1,0 +1,78 @@
+# ============================================================
+#  Mentra — Python / PyQt5 AI desktop assistant (.gitignore)
+# ============================================================
+
+# ----- Python bytecode & build artifacts -----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+.eggs/
+build/
+dist/
+*.manifest
+*.spec            # PyInstaller build spec (regenerated)
+
+# ----- Virtual environments (regenerate from requirements.txt) -----
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ----- Test / type / lint caches -----
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# ----- Secrets & environment (Groq API key, etc.) NEVER COMMIT -----
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# ----- SQLite runtime databases (chat history is user data) -----
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ----- Application runtime / debug artifacts -----
+vad_debug_capture.wav
+*.log
+logs/
+
+# ----- IDE / editor files -----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ----- OS-generated files -----
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+# macOS / Linux (cross-platform contributors)
+.DS_Store
+.AppleDouble
+
+# ----- Optional: local AI-tooling config (uncomment to ignore) -----
+# .claude/
+
+# NOTE: model assets are intentionally NOT ignored, e.g.
+#   mentra/workers/models/silero_vad.onnx
