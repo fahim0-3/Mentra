@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QWidget,
     QSizePolicy, QPushButton
 )
-from PyQt5.QtCore import Qt, pyqtSignal as Signal, QSize
+from PyQt5.QtCore import Qt, pyqtSignal as Signal
 from PyQt5.QtGui import QIcon
 
 class ChatItem(QFrame):

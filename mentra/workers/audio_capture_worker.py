@@ -44,7 +44,7 @@ class AudioCaptureWorker(QObject):
 
         # Try PyAudioWPatch (WASAPI loopback) first, fall back to sounddevice
         try:
-            import pyaudiowpatch
+            import pyaudiowpatch  # noqa: F401  (presence check; absence triggers sounddevice fallback)
             self._log("PyAudioWPatch available — trying WASAPI loopback")
             self._capture_with_pyaudiowpatch()
         except ImportError:

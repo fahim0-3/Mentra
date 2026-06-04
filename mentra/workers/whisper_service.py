@@ -93,7 +93,7 @@ def main():
             # Check if onnxruntime is available without DLL errors before enabling vad_filter
             use_vad = True
             try:
-                import onnxruntime
+                import onnxruntime  # noqa: F401  (availability gate for Whisper vad_filter)
             except Exception:
                 use_vad = False
 

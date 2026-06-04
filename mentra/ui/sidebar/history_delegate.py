@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import QStyledItemDelegate, QStyle, QStyleOptionViewItem, QApplication
-from PyQt5.QtCore import Qt, QRect, QPoint, QSize, pyqtSignal as Signal
-from PyQt5.QtGui import QColor, QFont, QIcon, QPainter, QBrush, QPen
+from PyQt5.QtWidgets import QStyledItemDelegate, QStyle
+from PyQt5.QtCore import Qt, QRect, QSize
+from PyQt5.QtGui import QColor, QFont, QPainter, QBrush
 from datetime import datetime
 from mentra.utils.styles import COLOR_TEXT_MAIN, COLOR_TEXT_SUB
 

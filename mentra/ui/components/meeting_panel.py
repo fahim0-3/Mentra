@@ -1,17 +1,16 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame,
-    QPushButton, QScrollArea, QSizePolicy, QGraphicsOpacityEffect,
+    QPushButton, QScrollArea, QSizePolicy,
 )
 from PyQt5.QtCore import (
     Qt, pyqtSignal as Signal, QTimer, QPropertyAnimation,
-    QEasingCurve, QSize,
+    QEasingCurve,
 )
-from PyQt5.QtGui import QColor, QPainter, QBrush, QPen, QFont
+from PyQt5.QtGui import QColor, QPainter, QBrush
 
 from mentra.utils.styles import (
-    COLOR_BG, COLOR_INPUT_BG, COLOR_TEXT_MAIN, COLOR_TEXT_SUB,
-    COLOR_ACCENT, COLOR_MEETING_OFF, COLOR_MEETING_LISTENING,
-    COLOR_MEETING_THINKING, STYLE_SCROLLBAR,
+    COLOR_TEXT_MAIN, COLOR_TEXT_SUB, COLOR_ACCENT, COLOR_MEETING_OFF,
+    COLOR_MEETING_LISTENING, COLOR_MEETING_THINKING, STYLE_SCROLLBAR,
 )
 
 

@@ -1,6 +1,4 @@
 import sqlite3
-import os
-from datetime import datetime
 
 class DatabaseManager:
     def __init__(self, db_path="mentra_history.db"):

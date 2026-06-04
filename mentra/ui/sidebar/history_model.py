@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QAbstractListModel, Qt, pyqtSignal as Signal, QModelIndex
+from PyQt5.QtCore import QAbstractListModel, Qt, QModelIndex
 
 class ChatHistoryModel(QAbstractListModel):
     """Data model for chat history history sidebar."""

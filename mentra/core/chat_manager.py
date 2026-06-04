@@ -1,6 +1,5 @@
 import os
 import json
-import uuid
 from datetime import datetime
 from mentra.core.database import DatabaseManager
 

@@ -3,7 +3,6 @@ keyboard
 ollama
 pillow
 pyautogui
-opencv-python
 numpy
 pywin32
 uiautomation

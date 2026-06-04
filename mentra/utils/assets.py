@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap
 from PIL import Image, ImageDraw
 from io import BytesIO
 

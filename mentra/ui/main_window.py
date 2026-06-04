@@ -4,7 +4,7 @@ import ollama
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QLineEdit, QScrollArea, QFrame, QStackedWidget,
-    QSizePolicy, QSplitter, QApplication
+    QSplitter, QApplication
 )
 from PyQt5.QtCore import (
     Qt, QTimer, QSize, QThread, QRect
@@ -26,9 +26,9 @@ from mentra.ui.chat.message_bubble import MessageBubble
 from mentra.utils.quota_guard import DailyQuotaGuard
 from mentra.utils.styles import (
     WINDOW_WIDTH, WINDOW_HEIGHT, COLOR_BG, COLOR_INPUT_BG,
-    COLOR_TEXT_MAIN, COLOR_TEXT_SUB, COLOR_ACCENT, GRIP,
-    HOTKEY, OLLAMA_MODEL, STYLE_SCROLLBAR,
-    COLOR_MEETING_OFF, COLOR_MEETING_LISTENING, COLOR_MEETING_THINKING,
+    COLOR_TEXT_MAIN, COLOR_TEXT_SUB, GRIP, HOTKEY,
+    OLLAMA_MODEL, STYLE_SCROLLBAR, COLOR_MEETING_OFF,
+    COLOR_MEETING_LISTENING, COLOR_MEETING_THINKING,
 )
 from mentra.utils.assets import (
     make_send_icon, make_copy_icon, make_stop_icon,

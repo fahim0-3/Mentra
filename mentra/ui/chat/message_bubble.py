@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QPushButton,
     QSizePolicy, QTextEdit, QApplication
 )
-from PyQt5.QtCore import Qt, pyqtSignal as Signal, QSize, QRect
+from PyQt5.QtCore import Qt, pyqtSignal as Signal, QSize
 from PyQt5.QtGui import QIcon
 from mentra.utils.styles import COLOR_ACCENT, COLOR_TEXT_MAIN
 

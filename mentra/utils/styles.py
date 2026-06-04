@@ -2,12 +2,10 @@
 WINDOW_WIDTH = 880
 WINDOW_HEIGHT = 760
 GRIP = 8
-MAX_HISTORY_MESSAGES = 20
 
 # Configuration
 HOTKEY = "ctrl+shift+f"
 OLLAMA_MODEL = "llama3:latest"
-OLLAMA_VISION_MODEL = "llava"
 
 # Color Palette (Zinc/Blue theme)
 COLOR_BG = "#09090b"
@@ -18,7 +16,6 @@ COLOR_TEXT_MAIN = "#fafafa"
 COLOR_TEXT_SUB = "#a1a1aa"
 
 # Common UI Styles
-STYLE_ROOT = f"#root{{background:{COLOR_BG};border:1px solid #27272a;border-radius:20px;}}"
 STYLE_SCROLLBAR = f"""
     QScrollBar:vertical {{
         background: transparent;
@@ -65,25 +62,6 @@ STYLE_SCROLLBAR = f"""
     }}
 """
 
-STYLE_INPUT_BAR = f"""
-    QFrame {{
-        background: {COLOR_INPUT_BG};
-        border: 1px solid #3f3f46;
-        border-radius: 25px;
-    }}
-"""
-
-STYLE_LINE_EDIT = f"""
-    QLineEdit {{
-        background: transparent;
-        border: none;
-        color: {COLOR_TEXT_MAIN};
-        font-size: 16px;
-        font-family: 'Segoe UI';
-        padding: 5px;
-    }}
-"""
-
 # Meeting Panel
 COLOR_MEETING_OFF = "#71717a"        # Zinc-500
 COLOR_MEETING_LISTENING = "#22c55e"  # Green-500
@@ -119,10 +97,6 @@ STT_MIN_AVG_LOGPROB = -1.0          # Drop a segment whose avg_logprob is below 
 
 # Silero VAD ONNX model (bundled locally so meeting start needs no network)
 SILERO_VAD_MODEL_FILENAME = "silero_vad.onnx"
-# Optional one-time prefetch source (NEVER fetched at meeting start; energy VAD covers the gap)
-SILERO_VAD_MODEL_URL = (
-    "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx"
-)
 
 # Question detection + answer gating (MeetingAssistantWorker)
 QUESTION_COOLDOWN_S = 4             # Min seconds between distinct auto-answers (was 15)
