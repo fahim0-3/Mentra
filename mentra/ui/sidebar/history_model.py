@@ -6,6 +6,7 @@ class ChatHistoryModel(QAbstractListModel):
         super().__init__()
         self.chat_manager = chat_manager
         self._chats = []
+        self._pending_delete = set()  # chat_ids soft-removed (awaiting undo or commit)
 
     def rowCount(self, parent=QModelIndex()):
         return len(self._chats)
@@ -24,9 +25,10 @@ class ChatHistoryModel(QAbstractListModel):
         return None
 
     def refresh(self):
-        """Reload all data from the database."""
+        """Reload all data from the database (excluding chats pending deletion)."""
         self.beginResetModel()
-        self._chats = self.chat_manager.get_all_chats()
+        self._chats = [c for c in self.chat_manager.get_all_chats()
+                       if c["id"] not in self._pending_delete]
         self.endResetModel()
 
     def get_chat_id(self, row):
@@ -45,6 +47,32 @@ class ChatHistoryModel(QAbstractListModel):
                 return True
         return False
         
+    def soft_remove(self, chat_id):
+        """Remove from the view only (database untouched). Returns (chat, row) for undo."""
+        for i, chat in enumerate(self._chats):
+            if chat["id"] == chat_id:
+                self._pending_delete.add(chat_id)
+                self.beginRemoveRows(QModelIndex(), i, i)
+                self._chats.pop(i)
+                self.endRemoveRows()
+                return chat, i
+        return None, -1
+
+    def restore(self, chat, row):
+        """Re-insert a previously soft-removed chat at its row (database untouched)."""
+        if not chat:
+            return
+        self._pending_delete.discard(chat["id"])
+        row = max(0, min(row, len(self._chats)))
+        self.beginInsertRows(QModelIndex(), row, row)
+        self._chats.insert(row, chat)
+        self.endInsertRows()
+
+    def commit_delete(self, chat_id):
+        """Permanently delete the chat from the database (the view is already updated)."""
+        self.chat_manager.delete_chat(chat_id)
+        self._pending_delete.discard(chat_id)
+
     def rename_chat(self, chat_id, new_title):
         """Update a chat's title in the model and database."""
         for i, chat in enumerate(self._chats):

@@ -119,8 +119,17 @@ class ScreenReaderWorker(QObject):
                 return
 
             prompt_text = (
-                "Read the current screen content and directly help solve or answer what is visible.\n"
-                "Do NOT describe what the user is doing or viewing. Provide the direct answer, code, or solution immediately.\n"
+                "You are an assistant reading the user's screen. Read ALL the visible content, then "
+                "respond directly and helpfully. Do NOT describe the screen.\n"
+                "1) ONLY if this is clearly a CODING task (a code editor, programming problem, or a "
+                "class/function template such as LeetCode's 'class Solution'): reply with ONLY the "
+                "complete, runnable solution that EXACTLY matches the visible signature — same class and "
+                "method names, parameter names, type hints, 'self', and indentation — ready to paste and "
+                "submit, no explanation.\n"
+                "2) OTHERWISE (an email, document, article, message, data, or any general question): "
+                "reply in clear plain language — answer the question if one is asked, or concisely "
+                "summarize the key details and important points. Do NOT write any code unless the task is "
+                "genuinely about programming.\n"
                 "If there is truly not enough readable content, reply ONLY with: 'The visible task is unclear.'\n\n"
             )
             if title:

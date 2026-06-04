@@ -1,21 +1,96 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListView, QFrame, QInputDialog, QLineEdit
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListView, QFrame,
+    QDialog, QLineEdit
 )
 from PyQt5.QtCore import Qt, pyqtSignal as Signal, QTimer
 from mentra.ui.components.snackbar import Snackbar
 from mentra.ui.sidebar.history_model import ChatHistoryModel
 from mentra.ui.sidebar.history_delegate import ChatItemDelegate
-from mentra.utils.styles import COLOR_FRAME, STYLE_SCROLLBAR
+from mentra.utils.styles import (
+    COLOR_FRAME, STYLE_SCROLLBAR, COLOR_INPUT_BG, COLOR_ACCENT,
+    COLOR_TEXT_MAIN, COLOR_TEXT_SUB,
+)
+
+
+class RenameDialog(QDialog):
+    """Frameless, dark-themed dialog for renaming a chat (replaces QInputDialog)."""
+
+    def __init__(self, current_title, parent=None):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setModal(True)
+        self.setFixedWidth(340)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+
+        card = QFrame()
+        card.setObjectName("renameCard")
+        card.setStyleSheet(
+            f"#renameCard{{background:{COLOR_FRAME}; border:1px solid #3f3f46; border-radius:14px;}}"
+        )
+        outer.addWidget(card)
+
+        lay = QVBoxLayout(card)
+        lay.setContentsMargins(18, 16, 18, 16)
+        lay.setSpacing(12)
+
+        title = QLabel("Rename chat")
+        title.setStyleSheet(
+            f"color:{COLOR_TEXT_MAIN}; font-size:14px; font-weight:600; background:transparent;"
+        )
+        lay.addWidget(title)
+
+        self.edit = QLineEdit(current_title)
+        self.edit.setStyleSheet(
+            f"QLineEdit{{background:{COLOR_INPUT_BG}; color:{COLOR_TEXT_MAIN}; "
+            f"border:1px solid #3f3f46; border-radius:8px; padding:8px 10px; font-size:13px;}}"
+            f"QLineEdit:focus{{border:1px solid {COLOR_ACCENT};}}"
+        )
+        self.edit.returnPressed.connect(self.accept)
+        lay.addWidget(self.edit)
+
+        btns = QHBoxLayout()
+        btns.addStretch()
+
+        cancel = QPushButton("Cancel")
+        cancel.setCursor(Qt.PointingHandCursor)
+        cancel.setStyleSheet(
+            f"QPushButton{{background:transparent; color:{COLOR_TEXT_SUB}; "
+            f"border:1px solid #3f3f46; border-radius:8px; padding:6px 14px; font-size:12px;}}"
+            f"QPushButton:hover{{background:#27272a; color:{COLOR_TEXT_MAIN};}}"
+        )
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(cancel)
+
+        save = QPushButton("Save")
+        save.setCursor(Qt.PointingHandCursor)
+        save.setStyleSheet(
+            f"QPushButton{{background:{COLOR_ACCENT}; color:white; border:none; "
+            f"border-radius:8px; padding:6px 16px; font-size:12px; font-weight:600;}}"
+            f"QPushButton:hover{{background:#2563eb;}}"
+        )
+        save.clicked.connect(self.accept)
+        btns.addWidget(save)
+        lay.addLayout(btns)
+
+        self.edit.setFocus()
+        self.edit.selectAll()
+
+    def get_title(self):
+        return self.edit.text().strip()
+
 
 class HistoryPanel(QWidget):
     load_chat = Signal(str)
     new_chat = Signal()
     collapse_clicked = Signal()
     chat_deleted = Signal(str)
-    
+
     # Internal signals for delegate communication
-    rename_requested = Signal(int) # row
-    delete_requested = Signal(int) # row
+    rename_requested = Signal(int)  # row
+    delete_requested = Signal(int)  # row
 
     def __init__(self, chat_manager, icons, parent=None):
         super().__init__(parent)
@@ -28,13 +103,13 @@ class HistoryPanel(QWidget):
             "border-top-left-radius: 20px; border-bottom-left-radius: 20px;"
         )
 
-        self.undo_registry = {} # chat_id: QTimer
+        self.undo_registry = {}  # chat_id: {"timer", "chat", "row"}
         self.snackbar = Snackbar(self)
         self.snackbar.undo_clicked.connect(self._on_undo)
 
         self.model = ChatHistoryModel(self.chat_manager)
         self.delegate = ChatItemDelegate(self.icons, self)
-        
+
         self.rename_requested.connect(self._on_rename_request)
         self.delete_requested.connect(self._on_delete_request)
 
@@ -58,7 +133,7 @@ class HistoryPanel(QWidget):
         lbl.setStyleSheet("color: #fafafa; font-size: 18px; font-weight: bold; background:transparent;")
         hdr.addWidget(lbl)
         hdr.addStretch()
-        
+
         self.btn_new = QPushButton("＋ New")
         self.btn_new.setFixedSize(70, 30)
         self.btn_new.setCursor(Qt.PointingHandCursor)
@@ -83,9 +158,9 @@ class HistoryPanel(QWidget):
         self.lv.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.lv.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.lv.setSpacing(5)
-        self.lv.setMouseTracking(True) # Required for hover effects in delegate
+        self.lv.setMouseTracking(True)  # Required for hover effects in delegate
         self.lv.clicked.connect(self._on_item_clicked)
-        
+
         main_lay.addWidget(self.lv)
         self.refresh()
 
@@ -100,41 +175,41 @@ class HistoryPanel(QWidget):
 
     def _on_rename_request(self, row):
         chat_id = self.model.get_chat_id(row)
-        if not chat_id: return
-        
-        # Simple InputDialog for rename (could be improved later)
+        if not chat_id:
+            return
         chat = self.model.data(self.model.index(row), Qt.UserRole)
-        new_title, ok = QInputDialog.getText(
-            self, "Rename Chat", "New Title:", QLineEdit.Normal, chat["title"]
-        )
-        if ok and new_title.strip():
-            self.model.rename_chat(chat_id, new_title.strip())
+        dlg = RenameDialog(chat["title"], self)
+        if dlg.exec_() == QDialog.Accepted:
+            new_title = dlg.get_title()
+            if new_title and new_title != chat["title"]:
+                self.model.rename_chat(chat_id, new_title)
 
     def _on_delete_request(self, row):
         chat_id = self.model.get_chat_id(row)
-        if not chat_id: return
-        
-        # Use undo snackbar
+        if not chat_id:
+            return
+        # Optimistic: remove from the view immediately; commit to the DB after 5s unless undone.
+        chat, orig_row = self.model.soft_remove(chat_id)
+        if chat is None:
+            return
         timer = QTimer(self)
         timer.setSingleShot(True)
         timer.timeout.connect(lambda cid=chat_id: self._on_permanently_delete(cid))
-        self.undo_registry[chat_id] = timer
+        self.undo_registry[chat_id] = {"timer": timer, "chat": chat, "row": orig_row}
         timer.start(5000)
 
         self.snackbar.show_msg("Chat deleted")
         self.chat_deleted.emit(chat_id)
-        # Note: model removal needs careful handling if undo is cancelled
-        self.model.refresh() # Temporarily reload (or we could store deleted IDs in model)
 
     def _on_undo(self):
         self.snackbar.hide()
-        if self.undo_registry:
-            chat_id = list(self.undo_registry.keys())[-1]
-            timer = self.undo_registry.pop(chat_id)
-            timer.stop()
-            self.model.refresh()
+        if not self.undo_registry:
+            return
+        chat_id = list(self.undo_registry.keys())[-1]
+        entry = self.undo_registry.pop(chat_id)
+        entry["timer"].stop()
+        self.model.restore(entry["chat"], entry["row"])
 
     def _on_permanently_delete(self, chat_id):
-        if chat_id in self.undo_registry:
-            self.undo_registry.pop(chat_id)
-        self.model.remove_chat_by_id(chat_id)
+        self.undo_registry.pop(chat_id, None)
+        self.model.commit_delete(chat_id)

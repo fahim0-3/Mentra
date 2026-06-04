@@ -368,10 +368,6 @@ class MeetingPanel(QFrame):
         self._debug_lines.clear()
         self._debug_label.setText("")
 
-    def set_model_loading(self):
-        """Show model loading indicator."""
-        self._transcript_label.setText("Loading Whisper model... (first time may take a moment)")
-
     def add_debug_log(self, msg: str):
         """Append a debug log message."""
         self._debug_lines.append(msg)

@@ -5,7 +5,7 @@ GRIP = 8
 
 # Configuration
 HOTKEY = "ctrl+shift+f"
-OLLAMA_MODEL = "llama3:latest"
+OLLAMA_MODEL = "llama3.2:3b"
 
 # Color Palette (Zinc/Blue theme)
 COLOR_BG = "#09090b"
