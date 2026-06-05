@@ -71,8 +71,5 @@ $RECYCLE.BIN/
 .DS_Store
 .AppleDouble
 
-# ----- Optional: local AI-tooling config (uncomment to ignore) -----
-# .claude/
-
-# NOTE: model assets are intentionally NOT ignored, e.g.
-#   mentra/workers/models/silero_vad.onnx
+# ----- Local AI-tooling config (Claude Code) — not part of the project -----
+.claude/
